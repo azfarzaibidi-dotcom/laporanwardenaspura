@@ -657,8 +657,9 @@ function App() {
 
     const {error} = await db.insertLaporan(formWithUrls);
     if (error) {
+      console.error("Supabase error:", error);
       local.save(formWithUrls);
-      showToast("💾 Disimpan offline","warn");
+      showToast("⚠️ Error: " + JSON.stringify(error).slice(0,100), "err");
     } else {
       showToast("✅ Laporan berjaya dihantar!");
     }
