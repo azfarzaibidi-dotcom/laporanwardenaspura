@@ -68,9 +68,10 @@ const DISIPLIN_ITEMS = [
 const ASPEK_TEMPLATE = [
   { bil: 2, kategori: "Kebersihan, Kekemasan & Keceriaan", items: ["Dorm","Tandas","Bilik Isolasi","Bilik Basuh","Dewan Makan","Bilik Iron"] },
   { bil: 3, kategori: "Sajian Makanan", items: ["Sarapan","Makan Tengah Hari","Minum Petang","Makan Malam","Minum Malam"] },
-  { bil: 4, kategori: "Kelas Persediaan (Prep)", items: ["Petang","Malam"] },
-  { bil: 5, kategori: "Sukan, Riadah dan Rekreasi", items: [] },
-  { bil: 6, kategori: "'Light Off' (Padam Lampu)", items: ["11.30 PM","12.00 AM"], noSkala: true },
+  { bil: 4, kategori: "Aktiviti Kerohanian / Surau", items: ["Subuh","Zohor","Asar","Maghrib","Isya'","Tazkirah/Ucapan Warden","Bacaan Al-Quran"], kerohanian: true },
+  { bil: 5, kategori: "Kelas Persediaan (Prep)", items: ["Petang","Malam"] },
+  { bil: 6, kategori: "Sukan, Riadah dan Rekreasi", items: [] },
+  { bil: 7, kategori: "'Light Off' (Padam Lampu)", items: ["11.30 PM","12.00 AM"], noSkala: true },
 ];
 
 const ASPEK_CATATAN = [
@@ -362,12 +363,21 @@ function exportPDF(lap) {
       aspekRows += `<tr><td style="font-weight:700;padding:8px;border:1px solid #e2e8f0;background:#f8fafc" colspan="8">${kat.bil}. ${kat.kategori}</td></tr>`;
       kat.items.forEach(item=>{
         const key=`${kat.bil}_${item}`, d=aspek[key]||{};
-        aspekRows += `<tr>
-          <td style="padding:6px 8px;border:1px solid #e2e8f0;padding-left:20px" colspan="2">${item}</td>
-          ${[1,2,3,4,5].map(s=>`<td style="text-align:center;border:1px solid #e2e8f0;background:${d.skala==s?SKALA_BG[s]:"#fff"}">${d.skala==s?"●":""}</td>`).join("")}
-          <td style="padding:6px 8px;border:1px solid #e2e8f0;font-size:11px">${d.catatan||""}${imgHtml(d.gambar)?"<br/>"+imgHtml(d.gambar):""}</td>
-          <td style="padding:6px 8px;border:1px solid #e2e8f0;font-size:11px">${d.tindakan||""}</td>
-        </tr>`;
+        if (kat.kerohanian) {
+          const statusColor = d.status==="Ada"?"#16a34a":d.status==="Tiada"?"#dc2626":"#94a3b8";
+          aspekRows += `<tr>
+            <td style="padding:6px 8px;border:1px solid #e2e8f0;padding-left:20px" colspan="2">${item}</td>
+            <td style="padding:6px 8px;border:1px solid #e2e8f0;text-align:center;font-weight:700;color:${statusColor}" colspan="5">${d.status||"—"}</td>
+            <td style="padding:6px 8px;border:1px solid #e2e8f0;font-size:11px">${d.catatan||""}</td>
+          </tr>`;
+        } else {
+          aspekRows += `<tr>
+            <td style="padding:6px 8px;border:1px solid #e2e8f0;padding-left:20px" colspan="2">${item}</td>
+            ${[1,2,3,4,5].map(s=>`<td style="text-align:center;border:1px solid #e2e8f0;background:${d.skala==s?SKALA_BG[s]:"#fff"}">${d.skala==s?"●":""}</td>`).join("")}
+            <td style="padding:6px 8px;border:1px solid #e2e8f0;font-size:11px">${d.catatan||""}${imgHtml(d.gambar)?"<br/>"+imgHtml(d.gambar):""}</td>
+            <td style="padding:6px 8px;border:1px solid #e2e8f0;font-size:11px">${d.tindakan||""}</td>
+          </tr>`;
+        }
       });
     } else {
       const key=`${kat.bil}`, d=aspek[key]||{};
@@ -1088,6 +1098,31 @@ function App() {
                     {hasItems ? kat.items.map((item,itemIdx)=>{
                       const key=`${kat.bil}_${item}`, val=form.aspek[key]||{skala:0,catatan:"",tindakan:"",gambar:[null,null],tick:false};
                       const isLast = itemIdx===kat.items.length-1;
+                      if (kat.kerohanian) {
+                        const isTazkirah = item === "Tazkirah/Ucapan Warden";
+                        return (
+                          <div key={item} style={{border:"1px solid #e2e8f0",borderTop:"none",padding:"12px 14px",borderRadius:isLast?"0 0 10px 10px":"0"}}>
+                            <div style={{display:"flex",alignItems:"center",gap:12,flexWrap:"wrap",marginBottom:8}}>
+                              <div style={{fontWeight:600,fontSize:13,color:"#374151",minWidth:180}}>— {item}</div>
+                              <div style={{display:"flex",gap:8}}>
+                                {["Ada","Tiada"].map(opt=>(
+                                  <button key={opt} onClick={()=>updAspek(key,"status",opt)} style={{
+                                    padding:"4px 16px",borderRadius:20,border:"1.5px solid",cursor:"pointer",fontSize:12,fontWeight:600,
+                                    borderColor:val.status===opt?(opt==="Ada"?"#16a34a":"#dc2626"):"#e2e8f0",
+                                    background:val.status===opt?(opt==="Ada"?"#dcfce7":"#fee2e2"):"#fff",
+                                    color:val.status===opt?(opt==="Ada"?"#16a34a":"#dc2626"):"#94a3b8",
+                                  }}>{opt}</button>
+                                ))}
+                              </div>
+                            </div>
+                            <div style={{marginBottom:8}}>
+                              <label style={{...S.label,fontWeight:400,color:"#94a3b8",fontSize:11}}>{isTazkirah?"Catatan (Tajuk / Nama Penceramah)":"Catatan"}</label>
+                              <input value={val.catatan||""} onChange={e=>updAspek(key,"catatan",e.target.value)} placeholder="Catatan..." style={{...S.input,padding:"6px 10px"}}/>
+                            </div>
+                            <GambarSlots imgs={val.gambar||[null,null]} onChange={imgs=>updAspek(key,"gambar",imgs)}/>
+                          </div>
+                        );
+                      }
                       return (
                         <div key={item} style={{border:"1px solid #e2e8f0",borderTop:"none",padding:"12px 14px",borderRadius:isLast?"0 0 10px 10px":"0"}}>
                           <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:kat.noSkala?0:8}}>
