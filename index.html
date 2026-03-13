@@ -800,7 +800,7 @@ function App() {
             </div>
             {/* Name list - Warden dengan highlight bertugas */}
             {loginRole==="Warden"&&(()=>{
-              const todayDuty=jadualList.find(j=>j.tarikh===todayStr())?.nama_warden||MAC_2026.find(j=>j.tarikh===todayStr())?.nama_warden||null;
+              const todayDuty=dutyWarden||MAC_2026.find(j=>j.tarikh===todayStr())?.nama_warden||null;
               return (
                 <div style={{marginBottom:14}}>
                   {todayDuty&&<div style={{fontSize:11,color:"#00e5ff",fontWeight:700,marginBottom:10,textAlign:"center",letterSpacing:1}}>⭐ WARDEN BERTUGAS HARI INI: {todayDuty}</div>}
