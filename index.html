@@ -733,7 +733,7 @@ function App() {
       const contentBlock = isPDF
         ? {type:"document",source:{type:"base64",media_type:"application/pdf",data:base64}}
         : {type:"image",source:{type:"base64",media_type:file.type||"image/jpeg",data:base64}};
-      const resp = await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:{"Content-Type":"application/json","x-api-key":"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","anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true"},body:JSON.stringify({
+      const resp = await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:{"Content-Type":"application/json","x-api-key":"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","anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true"},body:JSON.stringify({
         model:"claude-sonnet-4-20250514",
         max_tokens:1000,
         messages:[{role:"user",content:[
